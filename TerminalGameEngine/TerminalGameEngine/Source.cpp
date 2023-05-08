@@ -37,7 +37,7 @@ int main()
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"#..............#";
-	map += L"#..............#";
+	map += L"#.......########";
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"################";
@@ -58,12 +58,12 @@ int main()
 		//Handle CCW Rotation
 		if(GetAsyncKeyState(static_cast<unsigned short>('A')) && 0x8000)
 		{
-			PlayerAngle -= 0.1f * 5.f * deltaTime;
+			PlayerAngle -= 0.1f * 15.f * deltaTime;
 		}
 
 		if (GetAsyncKeyState(static_cast<unsigned short>('D')) && 0x8000)
 		{ 
-			PlayerAngle += 0.1f * 5.f * deltaTime;
+			PlayerAngle += 0.1f * 15.f * deltaTime;
 		}
 
 		if (GetAsyncKeyState(static_cast<unsigned short>('W')) && 0x8000)
@@ -77,6 +77,8 @@ int main()
 			PlayerX -= sinf(PlayerAngle) * 5.0f * deltaTime;
 			PlayerY -= cosf(PlayerAngle) * 5.0f * deltaTime;
 		}
+
+
 
 		for (int x = 0; x < ScreenWidth; x++)
 		{
@@ -138,6 +140,8 @@ int main()
 				Shade = ' '; //Too far away
 			}
 
+			short FloorShade = ' ';
+
 			for (int y = 0; y < ScreenHeight; y++)
 			{
 				if (y < CeilingDistance)
@@ -150,7 +154,30 @@ int main()
 				}
 				else
 				{
-					screen[y * ScreenWidth + x] = ' ';
+					//Shade floor based on distance
+					float b = 1.0f - ((static_cast<float>(y) - ScreenHeight * 0.5f) / (static_cast<float>(ScreenHeight) * 0.5f));
+					if (b < 0.25f)
+					{
+						FloorShade = '#';
+					}
+					else if (b < 0.5f) 
+					{
+						FloorShade = 'x';
+					}
+					else if (b < 0.75f)
+					{
+						FloorShade = '.';
+					}
+					else if (b < 0.9f)
+					{
+						FloorShade = '-';
+					}
+					else
+					{
+						FloorShade = ' ';
+					}
+
+					screen[y * ScreenWidth + x] = FloorShade;
 				} 
 			}
 		}
