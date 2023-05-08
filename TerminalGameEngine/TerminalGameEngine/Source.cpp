@@ -56,29 +56,63 @@ int main()
 
 		//Controls
 		//Handle CCW Rotation
-		if(GetAsyncKeyState(static_cast<unsigned short>('A')) && 0x8000)
+		if(GetAsyncKeyState(static_cast<unsigned short>('Q')) && 0x8000)
 		{
 			PlayerAngle -= 0.1f * 15.f * deltaTime;
 		}
 
-		if (GetAsyncKeyState(static_cast<unsigned short>('D')) && 0x8000)
+		if (GetAsyncKeyState(static_cast<unsigned short>('E')) && 0x8000)
 		{ 
 			PlayerAngle += 0.1f * 15.f * deltaTime;
+		}
+
+		if (GetAsyncKeyState(static_cast<unsigned short>('A')) && 0x8000)
+		{
+			PlayerX += tanf(PlayerAngle) * 5.0f * deltaTime;
+			PlayerY += (cosf(PlayerAngle) / sinf(PlayerAngle)) * 5.0f * deltaTime;
+
+			if (map[static_cast<int>(PlayerY) * MapWidth + static_cast<int>(PlayerX)] == '#')
+			{
+				PlayerX -= tanf(PlayerAngle) * 5.0f * deltaTime;
+				PlayerY -= cosf(PlayerAngle) / sinf(PlayerAngle) * 5.0f * deltaTime;
+			}
+		}
+
+		if (GetAsyncKeyState(static_cast<unsigned short>('D')) && 0x8000)
+		{
+			PlayerX -= sinf(PlayerAngle) * 5.0f * deltaTime;
+			PlayerY -= cosf(PlayerAngle) * 5.0f * deltaTime;
+
+			if (map[static_cast<int>(PlayerY) * MapWidth + static_cast<int>(PlayerX)] == '#')
+			{
+				PlayerX += sinf(PlayerAngle) * 5.0f * deltaTime;
+				PlayerY += cosf(PlayerAngle) * 5.0f * deltaTime;
+			}
 		}
 
 		if (GetAsyncKeyState(static_cast<unsigned short>('W')) && 0x8000)
 		{
 			PlayerX += sinf(PlayerAngle) * 5.0f * deltaTime;
 			PlayerY += cosf(PlayerAngle) * 5.0f * deltaTime;
+
+			if (map[static_cast<int>(PlayerY) * MapWidth + static_cast<int>(PlayerX)] == '#')
+			{
+				PlayerX -= sinf(PlayerAngle) * 5.0f * deltaTime;
+				PlayerY -= cosf(PlayerAngle) * 5.0f * deltaTime;
+			}
 		}
 
 		if (GetAsyncKeyState(static_cast<unsigned short>('S')) && 0x8000)
 		{
 			PlayerX -= sinf(PlayerAngle) * 5.0f * deltaTime;
 			PlayerY -= cosf(PlayerAngle) * 5.0f * deltaTime;
+
+			if (map[static_cast<int>(PlayerY) * MapWidth + static_cast<int>(PlayerX)] == '#')
+			{
+				PlayerX += sinf(PlayerAngle) * 5.0f * deltaTime;
+				PlayerY += cosf(PlayerAngle) * 5.0f * deltaTime;
+			}
 		}
-
-
 
 		for (int x = 0; x < ScreenWidth; x++)
 		{
