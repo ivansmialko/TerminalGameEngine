@@ -1,6 +1,8 @@
 #include <iostream>
 #include <chrono>
 #include <Windows.h>
+#include <vector>
+#include <algorithm>
 using namespace std;
 
 const int ScreenWidth = 120;
@@ -37,7 +39,7 @@ int main()
 	map += L"#.......#......#";
 	map += L"#.......#......#";
 	map += L"#.......#......#";
-	map += L"#.......########";
+	map += L"#.......#####.##";
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"################";
@@ -122,6 +124,7 @@ int main()
 
 			float DistanceToWall = 0.f;
 			bool IsHitWall = false; 
+			bool IsHitWallBoundry = false;
 
 			float EyeX = sinf(RayAngle); //Unit vector for ray in player space
 			float EyeY = cosf(RayAngle);
@@ -130,6 +133,7 @@ int main()
 			{
 				DistanceToWall += 0.1f;
 
+				//Coordinate on the map the ray currently is reaching to 
 				int TestX = static_cast<int>(PlayerX + EyeX * DistanceToWall);
 				int TestY = static_cast<int>(PlayerY + EyeY * DistanceToWall);
 
@@ -145,6 +149,28 @@ int main()
 					if (map[TestY * MapWidth + TestX] == '#')
 					{
 						IsHitWall = true;
+
+						//Accumulates for corners of walls
+						std::vector<std::pair<float, float>> CornerDistances; //distance to wall corner / dot product (angle between player-to-wall ray and corner-to-player ray)
+
+						for (int CornerTestX = 0; CornerTestX < 2; CornerTestX++)
+						{
+							for (int CornerTestY = 0; CornerTestY < 2; CornerTestY++)
+							{
+								//Vector from the corner to the player 
+								float VectorX = static_cast<float>(TestX) + CornerTestX - PlayerX;
+								float VectorY = static_cast<float>(TestY) + CornerTestY - PlayerY;
+								float VectorMagnitude = sqrt(VectorX * VectorX + VectorY * VectorY);
+								float VectorDotProduct = (EyeX * VectorX / VectorMagnitude) + (EyeY * VectorY / VectorMagnitude);
+								CornerDistances.push_back(make_pair(VectorMagnitude, VectorDotProduct));
+							}
+						}
+
+						//Sort pairs from closes to farthest
+						std::sort(CornerDistances.begin(), CornerDistances.end(), [](const pair<float, float>& left, const pair<float, float>& right) {return left.first  < right.first; });
+
+						float TestBound = 0.008f;
+						IsHitWallBoundry = (acos(CornerDistances.at(0).second) < TestBound) || (acos(CornerDistances.at(1).second) < TestBound) || (acos(CornerDistances.at(2).second) < TestBound);
 					}
 				}
 			}
@@ -173,6 +199,11 @@ int main()
 			else
 			{
 				Shade = ' '; //Too far away
+			}
+
+			if (IsHitWallBoundry)
+			{
+				Shade = ' ';
 			}
 
 			short FloorShade = ' ';
@@ -216,6 +247,19 @@ int main()
 				} 
 			}
 		}
+
+		//Display stats
+		swprintf(screen, 40, L"X=%3.2f, Y=%3.2f, A=%3.2f, FPS=%3.2f", PlayerX, PlayerY, PlayerAngle, 1.0f / deltaTime);
+
+		//Display map
+		for (int MapX = 0; MapX < MapWidth; MapX++)
+		{
+			for (int MapY = 0; MapY < MapHeight; MapY++)
+			{
+				screen[(MapY + 1) * ScreenWidth + MapX] = map[MapY * MapWidth + MapX];
+			}
+		}
+		screen[static_cast<int>(PlayerY + 1) * ScreenWidth + static_cast<int>(PlayerX)] = '@';
 
 		screen[ScreenWidth * ScreenHeight - 1] = '\0';
 		WriteConsoleOutputCharacter(hConsole, screen, ScreenWidth * ScreenHeight, { 0,0 }, &dwBytesWritten);
